@@ -1,6 +1,6 @@
 {
   "name": "tourmaker-ai",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "AI authoring CLI for TourMaker — analyzes your running app and generates tours with resilient selectors. Dev-time only.",
   "license": "MIT",
   "author": "Carlos Moreira",

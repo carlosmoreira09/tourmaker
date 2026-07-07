@@ -26,14 +26,22 @@ export function useAutoStartTour(
   const firedRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled || firedRef.current) return;
-    firedRef.current = true;
+    if (!enabled) return;
+
+    // Mark fired only when it actually runs — NOT when scheduled. Otherwise
+    // React Strict Mode's mount→cleanup→remount cancels the pending timer while
+    // firedRef stays set, so the remount never reschedules and it never fires.
+    const run = () => {
+      if (firedRef.current) return;
+      firedRef.current = true;
+      void engine.startOnce(tourId);
+    };
 
     if (delay > 0) {
-      const timer = setTimeout(() => void engine.startOnce(tourId), delay);
+      const timer = setTimeout(run, delay);
       return () => clearTimeout(timer);
     }
-    void engine.startOnce(tourId);
+    run();
     return;
   }, [engine, tourId, enabled, delay]);
 }
