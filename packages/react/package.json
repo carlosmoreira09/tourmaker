@@ -1,0 +1,46 @@
+{
+  "name": "@tourmaker/react",
+  "version": "0.1.0",
+  "description": "React bindings and zero-config default UI for TourMaker.",
+  "license": "MIT",
+  "author": "Carlos Moreira",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlosmoreira09/tourmaker.git",
+    "directory": "packages/react"
+  },
+  "publishConfig": { "access": "public" },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tourmaker/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.0"
+  }
+}

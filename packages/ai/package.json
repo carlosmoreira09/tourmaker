@@ -1,0 +1,33 @@
+{
+  "name": "@tourmaker/ai",
+  "version": "0.1.0",
+  "description": "AI authoring CLI for TourMaker — analyzes your running app and generates tours with resilient selectors. Dev-time only.",
+  "license": "MIT",
+  "author": "Carlos Moreira",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlosmoreira09/tourmaker.git",
+    "directory": "packages/ai"
+  },
+  "publishConfig": { "access": "public" },
+  "type": "module",
+  "bin": {
+    "tourmaker": "./dist/cli.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@tourmaker/core": "workspace:*",
+    "commander": "^12.1.0",
+    "openai": "latest",
+    "playwright": "^1.49.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.0"
+  }
+}

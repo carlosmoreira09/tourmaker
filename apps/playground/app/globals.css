@@ -1,0 +1,84 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f7f7fb;
+  color: #16161d;
+}
+.pg-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e7e7ef;
+  position: sticky;
+  top: 0;
+}
+.pg-search {
+  flex: 1;
+  max-width: 420px;
+  padding: 9px 14px;
+  border: 1px solid #dcdce6;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.pg-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #e7e7ef;
+  background: #fff;
+  cursor: pointer;
+  font-size: 18px;
+}
+.pg-main {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 64px 24px;
+  text-align: center;
+}
+.pg-main h1 {
+  font-size: 40px;
+  margin: 0 0 12px;
+}
+.pg-main p {
+  font-size: 17px;
+  color: #55556a;
+  margin: 0 auto 32px;
+  max-width: 560px;
+}
+.pg-cta {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  background: #6d28d9;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 13px 26px;
+  border-radius: 12px;
+}
+.pg-cta:hover {
+  filter: brightness(1.08);
+}
+.pg-theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #e7e7ef;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}

@@ -1,0 +1,33 @@
+{
+  "name": "tourmaker",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TourMaker — robust, plug-and-play interactive product tours for React (and beyond).",
+  "license": "MIT",
+  "author": "Carlos Moreira",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carlosmoreira09/tourmaker.git"
+  },
+  "keywords": [
+    "tour",
+    "product-tour",
+    "onboarding",
+    "walkthrough",
+    "tooltip",
+    "spotlight",
+    "react",
+    "nextjs"
+  ],
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "playground": "pnpm --filter playground dev"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  }
+}
