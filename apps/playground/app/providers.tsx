@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TourProvider, type TourTheme } from "@tourmaker/react";
+import { TourProvider, type TourTheme } from "tourmaker-react";
 import { demoTour } from "./tours";
 
 export function Providers({ children }: { children: React.ReactNode }) {

@@ -14,5 +14,5 @@ export type {
   TourState,
   TourEvent,
   Placement,
-} from "@tourmaker/core";
-export { SCHEMA_VERSION } from "@tourmaker/core";
+} from "tourmaker-core";
+export { SCHEMA_VERSION } from "tourmaker-core";

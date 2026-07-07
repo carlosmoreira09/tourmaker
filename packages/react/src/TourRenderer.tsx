@@ -6,7 +6,7 @@ import {
   watchTooltip,
   type SpotlightRect,
   type TooltipPosition,
-} from "@tourmaker/core";
+} from "tourmaker-core";
 import { useTour } from "./useTour";
 import { useTourEngine } from "./context";
 import { Overlay } from "./components/Overlay";

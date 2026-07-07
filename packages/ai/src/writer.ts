@@ -1,6 +1,6 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
-import type { Tour } from "@tourmaker/core";
+import type { Tour } from "tourmaker-core";
 
 function toCamel(id: string): string {
   const camel = id
@@ -23,7 +23,7 @@ export function renderTourFile(tour: Tour): string {
     .join("\n");
 
   return (
-    `import type { Tour } from "@tourmaker/core";\n\n` +
+    `import type { Tour } from "tourmaker-core";\n\n` +
     `export const ${toCamel(tour.id)}Tour: Tour = {\n` +
     `  id: ${JSON.stringify(tour.id)},\n` +
     `  schemaVersion: ${tour.schemaVersion ?? 1},\n` +

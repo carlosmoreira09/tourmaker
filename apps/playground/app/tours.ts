@@ -1,4 +1,4 @@
-import type { Tour } from "@tourmaker/react";
+import type { Tour } from "tourmaker-react";
 
 /** Demo tour used by the playground. This is exactly the shape the Phase 2 AI
  *  layer will generate. */

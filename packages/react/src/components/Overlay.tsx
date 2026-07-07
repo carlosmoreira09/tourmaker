@@ -1,4 +1,4 @@
-import type { SpotlightRect } from "@tourmaker/core";
+import type { SpotlightRect } from "tourmaker-core";
 
 interface OverlayProps {
   spotlight: SpotlightRect | null;

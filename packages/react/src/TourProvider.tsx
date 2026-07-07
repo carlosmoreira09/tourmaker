@@ -1,5 +1,5 @@
 import { useEffect, useMemo, type ReactNode } from "react";
-import { TourEngine, type Tour, type TourEvent } from "@tourmaker/core";
+import { TourEngine, type Tour, type TourEvent } from "tourmaker-core";
 import { TourContext } from "./context";
 import { TourRenderer } from "./TourRenderer";
 import { injectDefaultStyles } from "./styles";

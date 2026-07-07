@@ -21,9 +21,9 @@ pnpm build          # build all packages (core → react → ai → playground)
 
 ```
 packages/
-  core/       @tourmaker/core   framework-agnostic engine, schema & positioning (pure TS)
-  react/      @tourmaker/react   React bindings + zero-config default UI
-  ai/         @tourmaker/ai      dev-time authoring CLI (Playwright + OpenAI)
+  core/       tourmaker-core   framework-agnostic engine, schema & positioning (pure TS)
+  react/      tourmaker-react   React bindings + zero-config default UI
+  ai/         tourmaker-ai      dev-time authoring CLI (Playwright + OpenAI)
 apps/
   playground/                    Next 16 App Router demo / manual test harness
 ```
@@ -37,7 +37,7 @@ and only the React glue in `react`.
 ```bash
 pnpm dev            # tsup --watch on packages + next dev on the playground
 pnpm playground     # just the playground at http://localhost:3100
-pnpm test           # engine unit tests (Vitest, in @tourmaker/core)
+pnpm test           # engine unit tests (Vitest, in tourmaker-core)
 ```
 
 For live library work, run `pnpm dev` and edit under `packages/*/src` — changes
@@ -49,7 +49,7 @@ Run the same checks CI runs:
 
 ```bash
 pnpm build
-pnpm --filter @tourmaker/ai exec tsc -p tsconfig.json   # typecheck the CLI
+pnpm --filter tourmaker-ai exec tsc -p tsconfig.json   # typecheck the CLI
 pnpm test
 ```
 
@@ -64,7 +64,7 @@ change engine behavior.
 - Keep the **default UI** overridable: style via CSS variables / `className`, never
   hard-code values that consumers can't change.
 - The **runtime stays deterministic** — no network calls or AI at runtime. AI lives
-  only in `@tourmaker/ai` (dev-time).
+  only in `tourmaker-ai` (dev-time).
 - Comment the *why*, not the *what*.
 
 ## Commits & pull requests

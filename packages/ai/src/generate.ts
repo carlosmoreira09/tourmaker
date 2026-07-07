@@ -1,5 +1,5 @@
 import { chromium, type Page } from "playwright";
-import { SCHEMA_VERSION, type Tour, type TourStep } from "@tourmaker/core";
+import { SCHEMA_VERSION, type Tour, type TourStep } from "tourmaker-core";
 import { collectCandidates } from "./distill";
 import { planTour } from "./ai";
 import { writeTourFile } from "./writer";

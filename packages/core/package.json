@@ -1,5 +1,5 @@
 {
-  "name": "@tourmaker/core",
+  "name": "tourmaker-core",
   "version": "0.1.0",
   "description": "Framework-agnostic engine, schema and positioning for TourMaker interactive product tours.",
   "license": "MIT",

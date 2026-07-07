@@ -1,4 +1,4 @@
-# @tourmaker/ai
+# tourmaker-ai
 
 AI authoring CLI for TourMaker. **Dev-time only** — it analyzes your running app
 and generates a typed `Tour` file. The runtime that ships to production stays
@@ -7,7 +7,7 @@ and generates a typed `Tour` file. The runtime that ships to production stays
 ## How it works
 
 ```
-npx tourmaker generate --prompt "onboarding do dashboard" --route /dashboard
+npx tourmaker-ai generate --prompt "onboarding do dashboard" --route /dashboard
 ```
 
 1. Launches a headless browser (Playwright) and opens `--url` + `--route`.
@@ -17,7 +17,7 @@ npx tourmaker generate --prompt "onboarding do dashboard" --route /dashboard
    default)**, which returns ordered steps (which element, title, copy,
    placement) via strict structured outputs.
 4. **Verifies** every selector still resolves uniquely on the page.
-5. Writes a typed `tours/<id>.tour.ts` importing `Tour` from `@tourmaker/core`.
+5. Writes a typed `tours/<id>.tour.ts` importing `Tour` from `tourmaker-core`.
 
 It never edits your source files — it only reads the rendered DOM.
 
@@ -31,7 +31,7 @@ It never edits your source files — it only reads the rendered DOM.
 
 ```bash
 export OPENAI_API_KEY=sk-...
-npx tourmaker generate \
+npx tourmaker-ai generate \
   --prompt "tour de boas-vindas destacando busca, perfil e configurações" \
   --url http://localhost:3000 \
   --route / \

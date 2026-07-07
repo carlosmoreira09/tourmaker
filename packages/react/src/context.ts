@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { TourEngine } from "@tourmaker/core";
+import type { TourEngine } from "tourmaker-core";
 
 export const TourContext = createContext<TourEngine | null>(null);
 

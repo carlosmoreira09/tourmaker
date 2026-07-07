@@ -8,7 +8,7 @@
     "start": "next start -p 3100"
   },
   "dependencies": {
-    "@tourmaker/react": "workspace:*",
+    "tourmaker-react": "workspace:*",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

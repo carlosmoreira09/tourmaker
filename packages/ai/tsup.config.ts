@@ -9,6 +9,6 @@ export default defineConfig({
   sourcemap: true,
   dts: false,
   // Keep heavy/native deps out of the bundle; resolved from node_modules at runtime.
-  external: ["playwright", "openai", "@tourmaker/core", "commander"],
+  external: ["playwright", "openai", "tourmaker-core", "commander"],
   banner: { js: "#!/usr/bin/env node" },
 });

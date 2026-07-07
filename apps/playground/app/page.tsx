@@ -1,6 +1,6 @@
 "use client";
 
-import { useTour } from "@tourmaker/react";
+import { useTour } from "tourmaker-react";
 
 export default function Home() {
   const { start } = useTour();

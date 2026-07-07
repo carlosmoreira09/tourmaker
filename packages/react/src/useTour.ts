@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-import type { TourState } from "@tourmaker/core";
+import type { TourState } from "tourmaker-core";
 import { useTourEngine } from "./context";
 
 export interface UseTour {

@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { Placement, TourStep } from "@tourmaker/core";
+import type { Placement, TourStep } from "tourmaker-core";
 
 /** Props handed to a tooltip component (default or custom slot). */
 export interface TooltipRenderProps {

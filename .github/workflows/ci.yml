@@ -33,7 +33,7 @@ jobs:
         run: pnpm build
 
       - name: Typecheck CLI
-        run: pnpm --filter @tourmaker/ai exec tsc -p tsconfig.json
+        run: pnpm --filter tourmaker-ai exec tsc -p tsconfig.json
 
       - name: Test (engine)
         run: pnpm test

@@ -1,5 +1,5 @@
 {
-  "name": "@tourmaker/react",
+  "name": "tourmaker-react",
   "version": "0.1.0",
   "description": "React bindings and zero-config default UI for TourMaker.",
   "license": "MIT",
@@ -28,7 +28,7 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@tourmaker/core": "workspace:*"
+    "tourmaker-core": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18",
