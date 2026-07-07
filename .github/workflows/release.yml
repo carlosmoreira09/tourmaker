@@ -1,0 +1,45 @@
+name: Release
+
+# Publishes the packages to npm when you push a version tag, e.g. `v0.1.0`.
+#
+# Requires ONE repository secret — never commit it:
+#   GitHub → Settings → Secrets and variables → Actions → New repository secret
+#   Name: NPM_TOKEN   Value: an npm "Automation" access token (npmjs.com → Access Tokens)
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # enables npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish (@tourmaker/core, react, ai)
+        run: pnpm -r publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
