@@ -3,10 +3,25 @@
 export const isBrowser = (): boolean =>
   typeof window !== "undefined" && typeof document !== "undefined";
 
+/** Not visible if it (or the check) resolves to display:none / visibility:hidden. */
+function isDisplayed(el: Element): boolean {
+  if (!isBrowser()) return true;
+  const style = window.getComputedStyle(el);
+  return style.display !== "none" && style.visibility !== "hidden";
+}
+
 export function resolveTarget(selector?: string): Element | null {
   if (!selector || !isBrowser()) return null;
   try {
-    return document.querySelector(selector);
+    const matches = document.querySelectorAll(selector);
+    if (matches.length <= 1) return matches[0] ?? null;
+    // Multiple matches — common with responsive show/hide (e.g. a desktop
+    // sidebar and a mobile menu sharing `data-tour="menu"`). Prefer the one
+    // that's actually visible so we never spotlight a hidden element.
+    for (const el of matches) {
+      if (isDisplayed(el)) return el;
+    }
+    return matches[0] ?? null;
   } catch {
     // Invalid selector — treat as "not found" rather than throwing.
     return null;

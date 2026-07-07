@@ -280,6 +280,10 @@ document.querySelector(target)   →   mede a posição do elemento (getBounding
 Ou seja: o tour **não guarda coordenadas fixas** — ele encontra o elemento ao vivo,
 toda vez, pelo seletor. Se a tela rolar ou redimensionar, o spotlight acompanha.
 
+**Responsivo:** se o seletor casar com **vários** elementos (ex.: um sidebar de
+desktop e um menu mobile compartilhando `data-tour="menu"`), o TourMaker escolhe
+o que estiver **visível** — nunca destaca um elemento `display:none`.
+
 **Elemento ainda não existe?** Se o alvo aparece um instante depois (rota assíncrona,
 dado que carrega), o TourMaker **espera** até `waitForTarget` ms (padrão 3000). Se
 mesmo assim não aparecer, o passo é **pulado automaticamente** e um evento
