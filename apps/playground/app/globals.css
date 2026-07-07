@@ -69,6 +69,11 @@ body {
 .pg-cta:hover {
   filter: brightness(1.08);
 }
+.pg-status {
+  font-size: 14px !important;
+  color: #16161d !important;
+  margin-bottom: 20px !important;
+}
 .pg-theme-toggle {
   position: fixed;
   bottom: 20px;

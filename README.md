@@ -20,10 +20,13 @@ A IA te ajuda a **criar** os tours em dev-time. O **runtime que vai pra produç�
   - [Next.js — Pages Router](#nextjs--pages-router)
   - [React puro (Vite / CRA)](#react-puro-vite--cra)
 - [Definindo um tour](#definindo-um-tour)
+- [Como o tour encontra os elementos](#como-o-tour-encontra-os-elementos)
 - [Controlando o tour (`useTour`)](#controlando-o-tour-usetour)
 - [Temas (claro / escuro / auto)](#temas-claro--escuro--auto)
 - [Customizando o visual](#customizando-o-visual)
 - [Eventos (persistência e analytics)](#eventos-persistência-e-analytics)
+- [Persistência & controle](#persistência--controle)
+- [Gerando tours com IA (`tourmaker-ai`)](#gerando-tours-com-ia-tourmaker-ai)
 - [Referência da API](#referência-da-api)
 - [Como funciona por dentro](#como-funciona-por-dentro)
 - [Desenvolvimento local](#desenvolvimento-local)
@@ -247,6 +250,98 @@ const tour: Tour = {
 
 ---
 
+## Como o tour encontra os elementos
+
+Esta é a mecânica central do TourMaker — vale entender de uma vez.
+
+### 1. Cada passo aponta para um elemento via seletor CSS
+
+O campo `target` de um passo é um **seletor CSS**: uma "coordenada" que diz qual
+elemento da página aquele passo deve destacar.
+
+```ts
+{ target: "#busca", content: "Busque qualquer coisa aqui." }
+//         ▲ o elemento com id="busca"
+```
+
+`#busca` significa "o elemento com `id="busca"`". Mas `target` aceita **qualquer
+seletor CSS válido** — id, atributo, classe ou caminho estrutural.
+
+### 2. O que acontece em runtime
+
+Quando você chama `start("meu-tour")`, para cada passo o `tourmaker-react` faz:
+
+```
+document.querySelector(target)   →   mede a posição do elemento (getBoundingClientRect)
+                                 →   desenha o spotlight recortando ao redor dele
+                                 →   posiciona o tooltip ao lado (via Floating UI)
+```
+
+Ou seja: o tour **não guarda coordenadas fixas** — ele encontra o elemento ao vivo,
+toda vez, pelo seletor. Se a tela rolar ou redimensionar, o spotlight acompanha.
+
+**Elemento ainda não existe?** Se o alvo aparece um instante depois (rota assíncrona,
+dado que carrega), o TourMaker **espera** até `waitForTarget` ms (padrão 3000). Se
+mesmo assim não aparecer, o passo é **pulado automaticamente** e um evento
+`targetNotFound` é emitido — um seletor quebrado nunca trava o tour inteiro.
+
+### 3. Nem todo seletor é igual — escolha os robustos
+
+O maior risco de um tour é o seletor **quebrar** quando o código muda. Por isso a
+escolha do tipo de seletor importa:
+
+| Seletor | Aponta para | Robustez | Quando quebra |
+|---|---|---|---|
+| `#busca` | `id="busca"` | 🟢 Ótima | Só se você remover/renomear o `id` |
+| `[data-tour="busca"]` | atributo `data-tour="busca"` | 🟢 Ótima | Só se remover o atributo |
+| `[aria-label="Buscar"]` | acessibilidade | 🟡 Boa | Se o texto do label mudar |
+| `.header .search` | classes/estrutura | 🔴 Frágil | A cada refatoração de CSS/layout |
+
+> **Regra de ouro:** ancore os elementos que você vai destacar com um `id` ou um
+> `data-tour="..."`. É o que separa um tour à prova de refatoração de um que quebra
+> na primeira mudança de layout.
+
+```tsx
+// Marque os alvos com uma âncora estável:
+<input data-tour="busca" placeholder="Buscar…" />
+<button data-tour="perfil">🧑</button>
+
+// ...e o passo fica imune a mudanças de classe/estrutura:
+{ target: '[data-tour="busca"]', content: "Busque aqui." }
+```
+
+### 4. Passo centralizado (sem alvo)
+
+Um passo **sem `target`** não fica ancorado a nenhum elemento — ele aparece
+centralizado na tela, ideal para uma tela de boas-vindas ou um encerramento:
+
+```ts
+{ title: "Bem-vindo 👋", content: "Vamos dar uma volta pelo app." } // sem target
+```
+
+### 5. Você não precisa mapear na mão — o CLI faz isso
+
+Escrever os seletores manualmente é uma opção. Mas o `tourmaker-ai` (dev-time) faz
+o mapeamento **automaticamente**: ele abre seu app rodando, lê o DOM real e, para
+cada elemento, escolhe o **seletor mais resiliente disponível**, nesta ordem de
+prioridade:
+
+```
+1. #id                       (se o elemento tiver um id único)
+2. [data-testid] / [data-tour] / [data-cy]
+3. [aria-label]              (quando único)
+4. caminho CSS estrutural    (fallback — o menos robusto)
+```
+
+Depois ele **verifica** que o seletor resolve para um único elemento antes de gravar.
+Então: se seus elementos já têm `id`/`data-tour`, o CLI usa eles e o tour nasce
+robusto. Se não têm, ele ainda funciona — mas cai para o caminho estrutural (frágil),
+que é justamente o que a **Regra de ouro** acima evita.
+
+Veja a seção [Gerando tours com IA](#gerando-tours-com-ia-tourmaker-ai) para o comando.
+
+---
+
 ## Controlando o tour (`useTour`)
 
 Qualquer componente abaixo do provider pode ler o estado e dirigir o tour.
@@ -376,35 +471,106 @@ Passe `onEvent` para observar o ciclo de vida do tour. É aqui que você **lembr
 </TourProvider>
 ```
 
-### Exemplo: mostrar o onboarding só uma vez
+### Mostrar o onboarding só uma vez
+
+Isso é **built-in** — não precisa gerenciar `localStorage` na mão. Veja a seção
+[Persistência & controle](#persistência--controle) logo abaixo.
+
+---
+
+## Persistência & controle
+
+O TourMaker lembra **quem já viu** cada tour e oferece disparo automático,
+versionamento e segmentação — tudo opcional.
+
+### Auto-iniciar uma vez (o caso mais comum)
+
+`useAutoStartTour` inicia o tour ao montar o componente **só se o usuário ainda
+não viu**. Como uma página monta quando sua rota fica ativa, colocar o hook numa
+página **é** o "dispara nesta rota, uma vez" — sem acoplar a nenhum roteador:
 
 ```tsx
 "use client";
-import { useEffect } from "react";
-import { useTour } from "tourmaker-react";
+import { useAutoStartTour } from "tourmaker-react";
 
-export function AutoOnboarding() {
-  const { start } = useTour();
-  useEffect(() => {
-    if (!localStorage.getItem("seen:onboarding")) start("onboarding");
-  }, [start]);
-  return null;
+export default function DashboardPage() {
+  useAutoStartTour("onboarding"); // roda uma vez, na primeira visita
+  return <>{/* ... */}</>;
 }
 ```
 
+Ao **concluir** ou **pular**, o tour é marcado como visto (persistido). `stop()`
+**não** marca — é uma saída silenciosa (ex: troca de rota), então volta depois.
+Por padrão o estado vai pro **localStorage** (zero-config, SSR-safe).
+
+Opções: `useAutoStartTour("id", { enabled: user != null, delay: 500 })` — `enabled`
+segura o disparo (ex: esperar o auth carregar) e `delay` adia alguns ms.
+
+### Controle imperativo (`useTour`)
+
 ```tsx
-// e marque como visto ao concluir/pular:
-<TourProvider
-  tours={tours}
-  onEvent={(e) => {
-    if (e.type === "complete" || e.type === "skip") {
-      localStorage.setItem(`seen:${e.tourId}`, "1");
-    }
-  }}
->
+const { startOnce, reset, start } = useTour();
+
+startOnce("onboarding"); // Promise<boolean> — inicia só se não visto; retorna se iniciou
+reset("onboarding");     // limpa o "já viu" → pode ver de novo
+reset();                 // limpa todos
+start("onboarding");     // força iniciar, ignorando o "já viu"
 ```
 
-> Persistência, disparo por rota, versionamento e segmentação viram recursos de primeira classe na **Fase 3**. Até lá, o padrão acima resolve.
+E para UI condicional:
+
+```tsx
+import { useHasSeen } from "tourmaker-react";
+
+const seen = useHasSeen("onboarding"); // boolean | undefined (enquanto resolve)
+{seen === false && <Badge>Novo! Faça o tour</Badge>}
+```
+
+### Versionamento — re-mostrar quando o conteúdo muda
+
+Bumpe `version` no tour e quem já viu a versão anterior vê de novo:
+
+```ts
+const tour: Tour = { id: "onboarding", version: 2, steps: [ /* ... */ ] };
+// quem viu na version 1 → startOnce mostra de novo. Quem viu na 2 → não.
+```
+
+### Segmentação — mostrar só para certos usuários
+
+O predicado `when` (função) decide se o tour pode iniciar. A lib checa; **quem
+decide a regra é seu app**:
+
+```ts
+const tour: Tour = {
+  id: "pro-features",
+  when: () => currentUser.plan === "pro", // pode ser async
+  steps: [ /* ... */ ],
+};
+```
+
+> `when` é uma função — tours **gerados pela IA** continuam JSON puro; você adiciona
+> `when` em código quando precisa.
+
+### Persistência no seu backend (por usuário, multi-dispositivo)
+
+O padrão localStorage é por-navegador. Para lembrar por **usuário** (e sincronizar
+entre dispositivos), passe um `store` próprio implementando a interface `TourStore`:
+
+```tsx
+import { TourProvider, type TourStore } from "tourmaker-react";
+
+const apiStore: TourStore = {
+  getSeen: (tourId) => fetch(`/api/tours/${tourId}/seen`).then((r) => r.json()),
+  setSeen: (tourId, record) =>
+    fetch(`/api/tours/${tourId}/seen`, { method: "POST", body: JSON.stringify(record) }),
+  clear: (tourId) => fetch(`/api/tours/${tourId}/seen`, { method: "DELETE" }),
+};
+
+<TourProvider tours={tours} store={apiStore}>{children}</TourProvider>
+```
+
+Todos os métodos podem ser sync ou async. Também exportamos `localStorageStore(namespace?)`
+e `memoryStore()` (útil em testes/SSR).
 
 ---
 
@@ -417,8 +583,15 @@ export function AutoOnboarding() {
 | `tours` | `Tour[]` | `[]` | Tours disponíveis para `start(id)`. |
 | `theme` | `"dark" \| "light" \| "auto"` | `"dark"` | Tema da UI padrão. |
 | `injectStyles` | `boolean` | `true` | Injeta o CSS padrão automaticamente. |
+| `store` | `TourStore` | localStorage | Onde o estado "já viu" é persistido. |
 | `onEvent` | `(e: TourEvent) => void` | — | Observa eventos do ciclo de vida. |
 | `components` | `{ Tooltip?: Component }` | — | Substitui a UI padrão. |
+
+### `useTour()` — retorno
+
+`state`, `isActive`, `start(id)`, **`startOnce(id)`**, `next()`, `prev()`, `skip()`,
+`stop()`, `goTo(i)`, **`reset(id?)`**. Hooks extras: **`useAutoStartTour(id, opts?)`**
+e **`useHasSeen(id)`**. Veja [Persistência & controle](#persistência--controle).
 
 ### `Tour`
 
@@ -427,6 +600,8 @@ export function AutoOnboarding() {
 | `id` | `string` | Identificador único do tour. |
 | `steps` | `TourStep[]` | Passos, em ordem. |
 | `options` | `TourOptions` | Opções do tour (abaixo). |
+| `version` | `number?` | Versão de conteúdo; bumpe para re-mostrar. Default 1. |
+| `when` | `() => boolean \| Promise<boolean>` | Predicado de segmento (checado no `startOnce`). |
 | `schemaVersion` | `number` | Versão do schema (default `SCHEMA_VERSION`). |
 
 ### `TourStep`
@@ -538,7 +713,7 @@ apps/
 
 1. **Runtime core** — tours, spotlight, teclado, a11y, SSR-safe, temas. ✅ **Feito**
 2. **AI authoring CLI** — gerar tours + seletores resilientes a partir de linguagem natural. ✅ **Feito**
-3. **Persistência & controle** — lembrar quem viu, disparo por rota/evento, versionamento, segmentos.
+3. **Persistência & controle** — lembrar quem viu, disparo por rota/evento, versionamento, segmentos. ✅ **Feito**
 4. **Onboarding suite + analytics** — checklists, modais, hotspots, funil de conversão.
 
 ---

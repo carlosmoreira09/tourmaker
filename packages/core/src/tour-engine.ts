@@ -1,6 +1,12 @@
 import { Emitter } from "./emitter";
 import { resolveTarget, waitForElement } from "./dom";
-import type { Tour, TourEvent, TourState } from "./types";
+import { localStorageStore } from "./store";
+import type { Tour, TourEvent, TourState, TourStore } from "./types";
+
+export interface TourEngineOptions {
+  /** Where seen-state is persisted. Default: {@link localStorageStore}. */
+  store?: TourStore;
+}
 
 export interface ResolvedOptions {
   waitForTarget: number;
@@ -37,8 +43,10 @@ export class TourEngine {
   private eventEmitter = new Emitter<TourEvent>();
   /** Bumped on every navigation so stale async target-waits can bail out. */
   private transitionId = 0;
+  private store: TourStore;
 
-  constructor(tours: Tour[] = []) {
+  constructor(tours: Tour[] = [], options: TourEngineOptions = {}) {
+    this.store = options.store ?? localStorageStore();
     for (const tour of tours) this.register(tour);
   }
 
@@ -160,26 +168,79 @@ export class TourEngine {
 
   skip(): void {
     if (!this.state.tourId) return;
+    const tourId = this.state.tourId;
     this.transitionId++;
-    this.eventEmitter.emit({
-      type: "skip",
-      tourId: this.state.tourId,
-      stepIndex: this.state.stepIndex,
-    });
+    this.eventEmitter.emit({ type: "skip", tourId, stepIndex: this.state.stepIndex });
+    void this.recordSeen(tourId, "skipped");
     this.setState(IDLE_STATE);
   }
 
   complete(): void {
     if (!this.state.tourId) return;
+    const tourId = this.state.tourId;
     this.transitionId++;
-    this.eventEmitter.emit({ type: "complete", tourId: this.state.tourId });
+    this.eventEmitter.emit({ type: "complete", tourId });
+    void this.recordSeen(tourId, "completed");
     this.setState(IDLE_STATE);
   }
 
   stop(): void {
     if (!this.state.tourId) return;
+    // `stop` is a silent bail-out (e.g. route change) — it does NOT mark the
+    // tour as seen, so it can show again next time.
     this.transitionId++;
     this.eventEmitter.emit({ type: "stop", tourId: this.state.tourId });
     this.setState(IDLE_STATE);
+  }
+
+  // ── Persistence & controlled starts (Phase 3) ──────────────────────────────
+
+  private tourVersion(tour: Tour): number {
+    return tour.version ?? 1;
+  }
+
+  private async recordSeen(
+    tourId: string,
+    status: "completed" | "skipped",
+  ): Promise<void> {
+    const tour = this.tours.get(tourId);
+    if (!tour) return;
+    await this.store.setSeen(tourId, {
+      version: this.tourVersion(tour),
+      status,
+      at: Date.now(),
+    });
+  }
+
+  /** True if the user already saw this tour at its current {@link Tour.version}. */
+  async hasSeen(tourId: string): Promise<boolean> {
+    const tour = this.tours.get(tourId);
+    if (!tour) return false;
+    const record = await this.store.getSeen(tourId);
+    return record != null && record.version >= this.tourVersion(tour);
+  }
+
+  /** True if the tour is not yet seen (at this version) and its `when` passes. */
+  async canStart(tourId: string): Promise<boolean> {
+    const tour = this.tours.get(tourId);
+    if (!tour || tour.steps.length === 0) return false;
+    if (await this.hasSeen(tourId)) return false;
+    if (tour.when && !(await tour.when())) return false;
+    return true;
+  }
+
+  /**
+   * Start the tour only if {@link canStart} — i.e. not seen at this version and
+   * the segment predicate passes. Returns whether it actually started.
+   */
+  async startOnce(tourId: string, atStep = 0): Promise<boolean> {
+    if (!(await this.canStart(tourId))) return false;
+    await this.start(tourId, atStep);
+    return true;
+  }
+
+  /** Clear seen-state for a tour (or all tours) so it can be shown again. */
+  async reset(tourId?: string): Promise<void> {
+    await this.store.clear?.(tourId);
   }
 }

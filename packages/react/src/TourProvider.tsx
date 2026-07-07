@@ -1,5 +1,5 @@
 import { useEffect, useMemo, type ReactNode } from "react";
-import { TourEngine, type Tour, type TourEvent } from "tourmaker-core";
+import { TourEngine, type Tour, type TourEvent, type TourStore } from "tourmaker-core";
 import { TourContext } from "./context";
 import { TourRenderer } from "./TourRenderer";
 import { injectDefaultStyles } from "./styles";
@@ -16,6 +16,11 @@ export interface TourProviderProps {
   theme?: TourTheme;
   /** Inject the default stylesheet (zero-config UI). Default: true. */
   injectStyles?: boolean;
+  /**
+   * Where "already seen" state is persisted. Defaults to localStorage. Pass a
+   * custom {@link TourStore} to persist per-user on your backend.
+   */
+  store?: TourStore;
   /** Observe lifecycle events (persistence, analytics). */
   onEvent?: (event: TourEvent) => void;
   /** Override built-in UI (e.g. a custom Tooltip). */
@@ -27,13 +32,17 @@ export function TourProvider({
   tours = [],
   theme = "dark",
   injectStyles = true,
+  store,
   onEvent,
   components,
 }: TourProviderProps) {
-  // One engine per provider instance; created lazily and kept stable.
-  const engine = useMemo(() => new TourEngine(), []);
+  // One engine per provider instance; created lazily and kept stable. Tours are
+  // registered at creation (render time) so they exist before any child effect
+  // runs — otherwise `useAutoStartTour` in a child would fire before the tours
+  // are known. `store` is read once here; changing it later is not supported.
+  const engine = useMemo(() => new TourEngine(tours, { store }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Register/refresh tours when the list changes.
+  // Re-register when the tour list changes (dynamic tours / HMR).
   useEffect(() => {
     for (const tour of tours) engine.register(tour);
   }, [engine, tours]);

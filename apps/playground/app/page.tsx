@@ -1,9 +1,13 @@
 "use client";
 
-import { useTour } from "tourmaker-react";
+import { useTour, useAutoStartTour, useHasSeen } from "tourmaker-react";
 
 export default function Home() {
-  const { start } = useTour();
+  const { start, reset } = useTour();
+
+  // Phase 3: auto-start the tour once, on first visit (persisted in localStorage).
+  useAutoStartTour("demo");
+  const seen = useHasSeen("demo");
 
   return (
     <>
@@ -21,13 +25,26 @@ export default function Home() {
       <main className="pg-main">
         <h1>TourMaker Playground</h1>
         <p>
-          Clique abaixo para iniciar o tour de demonstração. Passo 1 é uma tela
-          centralizada; os seguintes destacam elementos reais da navegação. Use
-          as setas ← → e Esc.
+          O tour inicia <strong>sozinho na primeira visita</strong> (lembrado no
+          localStorage). Recarregue: ele não volta. Clique em “Resetar” para
+          poder ver de novo. Use as setas ← → e Esc.
         </p>
-        <button className="pg-cta" onClick={() => start("demo")}>
-          Iniciar tour ▶
-        </button>
+        <p className="pg-status">
+          Status:{" "}
+          {seen === undefined ? "…" : seen ? "já visto ✅" : "ainda não visto"}
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          <button className="pg-cta" onClick={() => start("demo")}>
+            Iniciar tour ▶
+          </button>
+          <button
+            className="pg-cta"
+            style={{ background: "#64748b" }}
+            onClick={() => void reset("demo").then(() => location.reload())}
+          >
+            Resetar “já viu”
+          </button>
+        </div>
       </main>
     </>
   );

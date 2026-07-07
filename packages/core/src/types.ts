@@ -64,6 +64,41 @@ export interface Tour {
   schemaVersion?: number;
   steps: TourStep[];
   options?: TourOptions;
+  /**
+   * Content version of this tour. Bump it when you change the tour's copy or
+   * steps and want users who already saw the previous version to see it again.
+   * `startOnce`/`hasSeen` compare this against the persisted record. Default: 1.
+   */
+  version?: number;
+  /**
+   * Segment predicate. When present, `startOnce` only starts the tour if this
+   * returns a truthy value. Being a function, it is a code-level escape hatch —
+   * AI-generated (serializable) tours never set it.
+   */
+  when?: () => boolean | Promise<boolean>;
+}
+
+export type MaybePromise<T> = T | Promise<T>;
+
+/** What gets persisted per tour so we know a user already saw it. */
+export interface SeenRecord {
+  /** The tour {@link Tour.version} that was seen. */
+  version: number;
+  status: "completed" | "skipped";
+  /** Unix ms timestamp. */
+  at: number;
+}
+
+/**
+ * Pluggable persistence for "who saw which tour". The default is
+ * {@link localStorageStore}; provide your own (e.g. backed by your API) to
+ * persist per-user, cross-device. All methods may be sync or async.
+ */
+export interface TourStore {
+  getSeen(tourId: string): MaybePromise<SeenRecord | null>;
+  setSeen(tourId: string, record: SeenRecord): MaybePromise<void>;
+  /** Clear a tour's seen state, or all of it when no id is given. */
+  clear?(tourId?: string): MaybePromise<void>;
 }
 
 export type TourStatus = "idle" | "running";

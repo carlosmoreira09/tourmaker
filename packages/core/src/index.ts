@@ -7,10 +7,15 @@ export type {
   TourState,
   TourStatus,
   TourEvent,
+  TourStore,
+  SeenRecord,
+  MaybePromise,
 } from "./types";
 
 export { TourEngine, DEFAULT_OPTIONS } from "./tour-engine";
-export type { ResolvedOptions } from "./tour-engine";
+export type { ResolvedOptions, TourEngineOptions } from "./tour-engine";
+
+export { localStorageStore, memoryStore } from "./store";
 
 export { Emitter } from "./emitter";
 export type { Listener } from "./emitter";
